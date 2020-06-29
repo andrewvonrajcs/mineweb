@@ -1,22 +1,28 @@
 from django.db import models
 from mcstatus import MinecraftServer
 
-class MyModelName(models.Model):
+class minecraftServer(models.Model):
+    # TODO: add query to get online player usernames
 
-    def getstatus(self):
-        self.server = MinecraftServer.lookup("minecraft-1.labfall.com:25565") 
-        self.status = self.server.status() 
+    def __init__(self):
+        self.server = MinecraftServer("minecraft-1.labfall.com", 25565) 
+
+    def reload(self):
+        # could add empty str defaults for description and the like
+        self.ping()
+        self.status()
+
+    def status(self):
+        # handle errors
+        raw = self.server.status().raw
+        self.description = raw['description']['text']
+        self.players = raw['players']['online']
+        self.version = raw['version']['name']
+
+    def ping(self):
+        # handle errors
         self.latency = self.server.ping() 
-        self.query = self.server.query()
-
+    
     def get_absolute_url(self):
         """Returns the url to access a particular instance of MyModelName."""
         return reverse('model-detail-view', args=[str(self.id)])
-    
-    def __str__(self):
-        self.getstatus()
-        a = "The server has {0} players and replied in {1} ms".format(self.status.players.online, self.status.latency)
-        b = "The server replied in {0} ms".format(self.latency)
-        c = "The server has the following players online: {0}".format(", ".join(self.query.players.names))
-        status = a + '\n' + b + '\n' + c
-        return status
